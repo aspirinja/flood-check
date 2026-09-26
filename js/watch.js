@@ -44,6 +44,7 @@
   /* ตรวจการเปลี่ยนแปลงทุกครั้งที่ข้อมูลหรือรายงานอัปเดต */
   let alerts = 0;
   W.check = function (silent) {
+    if (FM.data && FM.data.meta.levelOnly) return;
     const last = FM.store.get(LV, {}) || {};
     const items = W.items();
     let n = 0;
