@@ -294,3 +294,9 @@ dialog::backdrop{background:rgba(6,16,24,.55)}
 .st.rain.s1{background:#2f6fbf}.st.rain.s2{background:#5b45b8}.st.rain.s3{background:#8a2a9c}
 .st.wl{width:22px;height:22px;border-radius:4px;background:#127c6b}
 .st.wl.over{background:var(--s3,#c0392b)}
+
+/* จุดถนนที่มีรายงานน้ำท่วม และเรื่องแจ้งจากประชาชน */
+.st.rd{width:22px;height:22px;border-radius:50%;background:var(--sc,#888)}
+.st.rd.k3{background:var(--s3,#c0392b)}.st.rd.k2{background:var(--s2,#d9822b)}.st.rd.k1{background:var(--s1,#c9a227);color:#222}
+.st.tf{width:14px;height:14px;border-radius:50%;background:#f2c94c;border-width:2px;box-shadow:0 0 0 1px rgba(0,0,0,.35)}
+.st.tf.help{background:#e67e22}
