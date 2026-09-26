@@ -1,0 +1,510 @@
+{
+ "nodes": [
+  {
+   "id": "pathum",
+   "name": "ปทุมธานี",
+   "lon": 100.53,
+   "lat": 14.02,
+   "province": "ปทุมธานี",
+   "major": true
+  },
+  {
+   "id": "rangsit",
+   "name": "รังสิต",
+   "lon": 100.62,
+   "lat": 13.99,
+   "province": "ปทุมธานี",
+   "major": true
+  },
+  {
+   "id": "donmueang",
+   "name": "ดอนเมือง",
+   "lon": 100.6,
+   "lat": 13.91,
+   "province": "กทม.",
+   "major": true
+  },
+  {
+   "id": "laksi",
+   "name": "หลักสี่",
+   "lon": 100.57,
+   "lat": 13.88,
+   "province": "กทม.",
+   "major": false
+  },
+  {
+   "id": "nonth",
+   "name": "นนทบุรี",
+   "lon": 100.52,
+   "lat": 13.86,
+   "province": "นนทบุรี",
+   "major": true
+  },
+  {
+   "id": "bbt",
+   "name": "บางบัวทอง",
+   "lon": 100.42,
+   "lat": 13.93,
+   "province": "นนทบุรี",
+   "major": false
+  },
+  {
+   "id": "bangyai",
+   "name": "บางใหญ่",
+   "lon": 100.41,
+   "lat": 13.87,
+   "province": "นนทบุรี",
+   "major": false
+  },
+  {
+   "id": "chatuchak",
+   "name": "จตุจักร",
+   "lon": 100.56,
+   "lat": 13.83,
+   "province": "กทม.",
+   "major": false
+  },
+  {
+   "id": "bangsue",
+   "name": "บางซื่อ",
+   "lon": 100.52,
+   "lat": 13.81,
+   "province": "กทม.",
+   "major": false
+  },
+  {
+   "id": "ladprao",
+   "name": "ลาดพร้าว",
+   "lon": 100.6,
+   "lat": 13.8,
+   "province": "กทม.",
+   "major": false
+  },
+  {
+   "id": "ratchada",
+   "name": "ห้วยขวาง",
+   "lon": 100.575,
+   "lat": 13.77,
+   "province": "กทม.",
+   "major": false
+  },
+  {
+   "id": "victory",
+   "name": "อนุสาวรีย์ชัยฯ",
+   "lon": 100.537,
+   "lat": 13.765,
+   "province": "กทม.",
+   "major": false
+  },
+  {
+   "id": "siam",
+   "name": "สยาม",
+   "lon": 100.53,
+   "lat": 13.745,
+   "province": "กทม.",
+   "major": true
+  },
+  {
+   "id": "hua",
+   "name": "หัวลำโพง",
+   "lon": 100.515,
+   "lat": 13.73,
+   "province": "กทม.",
+   "major": false
+  },
+  {
+   "id": "rama9",
+   "name": "พระราม 9",
+   "lon": 100.575,
+   "lat": 13.757,
+   "province": "กทม.",
+   "major": false
+  },
+  {
+   "id": "asok",
+   "name": "อโศก",
+   "lon": 100.565,
+   "lat": 13.735,
+   "province": "กทม.",
+   "major": false
+  },
+  {
+   "id": "klongtoei",
+   "name": "คลองเตย",
+   "lon": 100.56,
+   "lat": 13.71,
+   "province": "กทม.",
+   "major": false
+  },
+  {
+   "id": "onnut",
+   "name": "อ่อนนุช",
+   "lon": 100.6,
+   "lat": 13.7,
+   "province": "กทม.",
+   "major": false
+  },
+  {
+   "id": "bangkapi",
+   "name": "บางกะปิ",
+   "lon": 100.65,
+   "lat": 13.77,
+   "province": "กทม.",
+   "major": true
+  },
+  {
+   "id": "minburi",
+   "name": "มีนบุรี",
+   "lon": 100.73,
+   "lat": 13.81,
+   "province": "กทม.",
+   "major": true
+  },
+  {
+   "id": "latkrabang",
+   "name": "ลาดกระบัง",
+   "lon": 100.77,
+   "lat": 13.72,
+   "province": "กทม.",
+   "major": true
+  },
+  {
+   "id": "suvarn",
+   "name": "สุวรรณภูมิ",
+   "lon": 100.75,
+   "lat": 13.69,
+   "province": "สมุทรปราการ",
+   "major": false
+  },
+  {
+   "id": "bangna",
+   "name": "บางนา",
+   "lon": 100.63,
+   "lat": 13.67,
+   "province": "กทม.",
+   "major": true
+  },
+  {
+   "id": "samutp",
+   "name": "สมุทรปราการ",
+   "lon": 100.6,
+   "lat": 13.6,
+   "province": "สมุทรปราการ",
+   "major": true
+  },
+  {
+   "id": "phrap",
+   "name": "พระประแดง",
+   "lon": 100.53,
+   "lat": 13.66,
+   "province": "สมุทรปราการ",
+   "major": false
+  },
+  {
+   "id": "thon",
+   "name": "ธนบุรี",
+   "lon": 100.47,
+   "lat": 13.71,
+   "province": "กทม.",
+   "major": true
+  },
+  {
+   "id": "taling",
+   "name": "ตลิ่งชัน",
+   "lon": 100.45,
+   "lat": 13.78,
+   "province": "กทม.",
+   "major": true
+  },
+  {
+   "id": "bangkhae",
+   "name": "บางแค",
+   "lon": 100.4,
+   "lat": 13.71,
+   "province": "กทม.",
+   "major": true
+  },
+  {
+   "id": "putta",
+   "name": "พุทธมณฑล",
+   "lon": 100.32,
+   "lat": 13.79,
+   "province": "นครปฐม",
+   "major": true
+  },
+  {
+   "id": "samutsakhon",
+   "name": "สมุทรสาคร",
+   "lon": 100.27,
+   "lat": 13.55,
+   "province": "สมุทรสาคร",
+   "major": true
+  }
+ ],
+ "segments": [
+  {
+   "id": "e1",
+   "road": "ถ.ปทุมธานี–รังสิต",
+   "from": "pathum",
+   "to": "rangsit"
+  },
+  {
+   "id": "e2",
+   "road": "ถ.พหลโยธิน",
+   "from": "rangsit",
+   "to": "donmueang"
+  },
+  {
+   "id": "e3",
+   "road": "ถ.วิภาวดีรังสิต",
+   "from": "donmueang",
+   "to": "laksi"
+  },
+  {
+   "id": "e4",
+   "road": "ถ.พหลโยธิน",
+   "from": "laksi",
+   "to": "chatuchak"
+  },
+  {
+   "id": "e5",
+   "road": "ถ.พหลโยธิน",
+   "from": "chatuchak",
+   "to": "victory"
+  },
+  {
+   "id": "e6",
+   "road": "ถ.พญาไท",
+   "from": "victory",
+   "to": "siam"
+  },
+  {
+   "id": "e7",
+   "road": "ถ.เพลินจิต–สุขุมวิท",
+   "from": "siam",
+   "to": "asok"
+  },
+  {
+   "id": "e8",
+   "road": "ถ.สุขุมวิท",
+   "from": "asok",
+   "to": "onnut"
+  },
+  {
+   "id": "e9",
+   "road": "ถ.สุขุมวิท",
+   "from": "onnut",
+   "to": "bangna"
+  },
+  {
+   "id": "e10",
+   "road": "ถ.สุขุมวิท",
+   "from": "bangna",
+   "to": "samutp"
+  },
+  {
+   "id": "e11",
+   "road": "ถ.รามอินทรา",
+   "from": "laksi",
+   "to": "bangkapi"
+  },
+  {
+   "id": "e12",
+   "road": "ถ.ลาดพร้าว",
+   "from": "ladprao",
+   "to": "chatuchak"
+  },
+  {
+   "id": "e13",
+   "road": "ถ.ลาดพร้าว",
+   "from": "ladprao",
+   "to": "ratchada"
+  },
+  {
+   "id": "e14",
+   "road": "ถ.รัชดาภิเษก",
+   "from": "ratchada",
+   "to": "rama9"
+  },
+  {
+   "id": "e15",
+   "road": "ถ.พระราม 9",
+   "from": "rama9",
+   "to": "asok"
+  },
+  {
+   "id": "e16",
+   "road": "ถ.ลาดพร้าว",
+   "from": "bangkapi",
+   "to": "ladprao"
+  },
+  {
+   "id": "e17",
+   "road": "ถ.สีหบุรานุกิจ",
+   "from": "bangkapi",
+   "to": "minburi"
+  },
+  {
+   "id": "e18",
+   "road": "ถ.รามคำแหง",
+   "from": "bangkapi",
+   "to": "latkrabang"
+  },
+  {
+   "id": "e19",
+   "road": "ถ.ลาดกระบัง",
+   "from": "latkrabang",
+   "to": "suvarn"
+  },
+  {
+   "id": "e20",
+   "road": "ถ.บางนา–ตราด",
+   "from": "suvarn",
+   "to": "bangna"
+  },
+  {
+   "id": "e21",
+   "road": "ถ.ศรีบูรพา",
+   "from": "rama9",
+   "to": "bangkapi"
+  },
+  {
+   "id": "e22",
+   "road": "ถ.พระราม 4",
+   "from": "asok",
+   "to": "klongtoei"
+  },
+  {
+   "id": "e23",
+   "road": "ถ.พระราม 4",
+   "from": "hua",
+   "to": "siam"
+  },
+  {
+   "id": "e24",
+   "road": "ถ.พระราม 4",
+   "from": "hua",
+   "to": "klongtoei"
+  },
+  {
+   "id": "e25",
+   "road": "ถ.สุขุมวิท 71",
+   "from": "klongtoei",
+   "to": "onnut"
+  },
+  {
+   "id": "e26",
+   "road": "ถ.เจริญกรุง",
+   "from": "hua",
+   "to": "thon"
+  },
+  {
+   "id": "e27",
+   "road": "ถ.จรัญสนิทวงศ์",
+   "from": "thon",
+   "to": "taling"
+  },
+  {
+   "id": "e28",
+   "road": "ถ.เพชรเกษม",
+   "from": "thon",
+   "to": "bangkhae"
+  },
+  {
+   "id": "e29",
+   "road": "ถ.กาญจนาภิเษก",
+   "from": "taling",
+   "to": "bangkhae"
+  },
+  {
+   "id": "e30",
+   "road": "ถ.พุทธมณฑลสาย 2",
+   "from": "taling",
+   "to": "putta"
+  },
+  {
+   "id": "e31",
+   "road": "ถ.พระราม 2",
+   "from": "bangkhae",
+   "to": "samutsakhon"
+  },
+  {
+   "id": "e32",
+   "road": "ถ.ราชพฤกษ์",
+   "from": "taling",
+   "to": "bangyai"
+  },
+  {
+   "id": "e33",
+   "road": "ถ.กาญจนาภิเษก",
+   "from": "bangyai",
+   "to": "bbt"
+  },
+  {
+   "id": "e34",
+   "road": "ถ.รัตนาธิเบศร์",
+   "from": "bbt",
+   "to": "nonth"
+  },
+  {
+   "id": "e35",
+   "road": "ถ.ประชาราษฎร์",
+   "from": "nonth",
+   "to": "bangsue"
+  },
+  {
+   "id": "e36",
+   "road": "ถ.กำแพงเพชร 2",
+   "from": "bangsue",
+   "to": "chatuchak"
+  },
+  {
+   "id": "e37",
+   "road": "ถ.ประชาราษฎร์สาย 1",
+   "from": "bangsue",
+   "to": "victory"
+  },
+  {
+   "id": "e38",
+   "road": "ถ.ติวานนท์–ปทุมธานี",
+   "from": "pathum",
+   "to": "nonth"
+  },
+  {
+   "id": "e39",
+   "road": "ถ.สุขสวัสดิ์",
+   "from": "samutp",
+   "to": "phrap"
+  },
+  {
+   "id": "e40",
+   "road": "ถ.สุขสวัสดิ์",
+   "from": "phrap",
+   "to": "thon"
+  },
+  {
+   "id": "e41",
+   "road": "ถ.รามอินทรา–มิตรไมตรี",
+   "from": "donmueang",
+   "to": "minburi"
+  },
+  {
+   "id": "e42",
+   "road": "ถ.รังสิต–นครนายก",
+   "from": "rangsit",
+   "to": "minburi"
+  },
+  {
+   "id": "e43",
+   "road": "ถ.แจ้งวัฒนะ",
+   "from": "laksi",
+   "to": "nonth"
+  },
+  {
+   "id": "e44",
+   "road": "ถ.เกษตร–นวมินทร์",
+   "from": "ladprao",
+   "to": "laksi"
+  }
+ ]
+}

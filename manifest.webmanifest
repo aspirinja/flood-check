@@ -1,0 +1,11 @@
+{
+  "name": "เช็คน้ำท่วม กรุงเทพฯ และปริมณฑล",
+  "short_name": "เช็คน้ำท่วม",
+  "description": "ดูจุดน้ำท่วม ถนนที่ควรเลี่ยง และเช็คเส้นทาง",
+  "start_url": "./",
+  "display": "standalone",
+  "background_color": "#EDF1F4",
+  "theme_color": "#0B5C8A",
+  "lang": "th",
+  "icons": [{ "src": "icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" }]
+}

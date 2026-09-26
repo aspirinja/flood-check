@@ -1,0 +1,18 @@
+# สำหรับ Render: สร้าง Static Site จากไฟล์นี้ (New > Blueprint) หรือตั้งค่าเองในหน้าเว็บ
+# Build Command เว้นว่างหรือ echo, Publish Directory = .
+services:
+  - type: web
+    name: flood-check
+    runtime: static
+    buildCommand: echo "ไม่ต้อง build"
+    staticPublishPath: .
+    headers:
+      - path: /data/*
+        name: Cache-Control
+        value: no-cache
+      - path: /js/*
+        name: Cache-Control
+        value: no-cache
+      - path: /css/*
+        name: Cache-Control
+        value: no-cache

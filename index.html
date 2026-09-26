@@ -1,0 +1,118 @@
+<!doctype html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>เช็คน้ำท่วม กทม.</title>
+<meta name="description" content="ดูจุดน้ำท่วม ถนนที่ควรเลี่ยง และเช็คเส้นทางในกรุงเทพฯ และปริมณฑล พร้อมติดตามจุดที่สำคัญกับคุณ">
+<meta name="theme-color" content="#0B5C8A">
+<meta property="og:title" content="เช็คน้ำท่วม กทม.">
+<meta property="og:description" content="ดูจุดน้ำท่วม ถนนที่ควรเลี่ยง และเช็คเส้นทางในกรุงเทพฯ และปริมณฑล">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@400;500;600&family=Prompt:wght@500;600&display=swap">
+<link rel="stylesheet" href="vendor/leaflet/leaflet.css">
+<link rel="stylesheet" href="vendor/markercluster/MarkerCluster.css">
+<link rel="stylesheet" href="css/app.css">
+</head>
+<body>
+<div class="app">
+  <header class="top">
+    <h1>เช็คน้ำท่วม กรุงเทพฯ และปริมณฑล</h1>
+    <div class="top-r">
+      <span class="badge" id="modebadge" hidden>ข้อมูลตัวอย่าง</span>
+      <button class="theme" id="theme" type="button">ตามอุปกรณ์</button>
+    </div>
+  </header>
+  <div class="freshbar"><span class="fresh" id="fresh" role="status">กำลังโหลด…</span></div>
+
+  <main class="main">
+    <section class="mapwrap" aria-label="แผนที่น้ำท่วม">
+      <div id="map"></div>
+      <div class="overlay-top">
+        <div class="search" id="searchbox">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
+          <input id="q" type="search" placeholder="ค้นหาถนน เขต หรือย่าน เช่น สุขุมวิท, บางนา" autocomplete="off" aria-label="ค้นหาถนนหรือพื้นที่">
+          <button class="clear" id="qclear" type="button" aria-label="ล้างคำค้นหา">×</button>
+        </div>
+        <div class="chips" id="pv" role="group" aria-label="กรองตามจังหวัด"></div>
+      </div>
+      <button class="fab" id="fab-report" type="button">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>
+        รายงานน้ำท่วม
+      </button>
+      <div class="mapbtns">
+        <button id="zloc" type="button" aria-label="ไปที่ตำแหน่งของฉัน">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v4M12 18v4M2 12h4M18 12h4"/></svg>
+        </button>
+        <button id="zfit" type="button" aria-label="ดูทั้งหมด">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg>
+        </button>
+      </div>
+      <div class="pickbar" id="pickbar" hidden><span id="pickhint">แตะตำแหน่งบนแผนที่</span><button id="pickcancel" type="button" class="btn">ยกเลิก</button></div>
+    </section>
+
+    <aside class="panel">
+      <div class="tabs" role="tablist" aria-label="เมนู">
+        <button class="tab" role="tab" id="t-overview" type="button" aria-controls="p-overview" aria-selected="true">ภาพรวม</button>
+        <button class="tab" role="tab" id="t-list" type="button" aria-controls="p-list" aria-selected="false">จุดท่วม</button>
+        <button class="tab" role="tab" id="t-route" type="button" aria-controls="p-route" aria-selected="false">เส้นทาง</button>
+        <button class="tab" role="tab" id="t-watch" type="button" aria-controls="p-watch" aria-selected="false">ติดตาม</button>
+      </div>
+
+      <div class="tabbody" id="p-overview" role="tabpanel" aria-labelledby="t-overview"><div id="ov"></div></div>
+
+      <div class="tabbody" id="p-list" role="tabpanel" aria-labelledby="t-list" hidden>
+        <div id="detail"></div>
+        <div class="stats" id="stats" role="group" aria-label="กรองตามระดับน้ำ"></div>
+        <div class="seg2" id="modeseg" role="group" aria-label="โหมดรายการ">
+          <button type="button" data-mode="all" aria-pressed="true">ทั้งหมด</button>
+          <button type="button" data-mode="avoid" aria-pressed="false">ควรเลี่ยง</button>
+        </div>
+        <p class="note">เส้นประบนแผนที่คือถนนที่ห้ามผ่าน ตัวเลขในหมุดคือความสูงน้ำเป็น ซม. โหมด "ควรเลี่ยง" แสดงถนนที่น้ำสูงตั้งแต่ 15 ซม. พร้อมบอกว่ารถแต่ละประเภทผ่านได้หรือไม่</p>
+        <div id="list"></div>
+        <section class="sec"><h3>รายงานจากผู้ใช้</h3><p class="note" id="repnote"></p><div id="replist"></div></section>
+      </div>
+
+      <div class="tabbody" id="p-route" role="tabpanel" aria-labelledby="t-route" hidden>
+        <div class="form">
+          <div class="field"><label for="from">ต้นทาง</label><select id="from"></select></div>
+          <button class="swap" id="swap" type="button" aria-label="สลับต้นทางกับปลายทาง">⇄</button>
+          <div class="field"><label for="to">ปลายทาง</label><select id="to"></select></div>
+        </div>
+        <fieldset>
+          <legend class="legend">ยานพาหนะ</legend>
+          <div class="seg" id="veh">
+            <label><input type="radio" name="veh" value="bike" id="v-bike"><span>มอเตอร์ไซค์<small>ผ่านได้ ≤ 10 ซม.</small></span></label>
+            <label><input type="radio" name="veh" value="sedan" id="v-sedan" checked><span>รถเก๋ง<small>ผ่านได้ ≤ 20 ซม.</small></span></label>
+            <label><input type="radio" name="veh" value="suv" id="v-suv"><span>กระบะ / SUV<small>ผ่านได้ ≤ 35 ซม.</small></span></label>
+          </div>
+        </fieldset>
+        <div id="routeout" aria-live="polite"></div>
+      </div>
+
+      <div class="tabbody" id="p-watch" role="tabpanel" aria-labelledby="t-watch" hidden><div id="watchbody"></div></div>
+    </aside>
+  </main>
+</div>
+
+<dialog id="dlg" aria-label="แบบฟอร์ม"><form id="dform" method="dialog"></form></dialog>
+<div class="toasts" id="toasts" role="status" aria-live="polite"></div>
+
+<noscript><p style="padding:24px">ต้องเปิด JavaScript เพื่อใช้งานแผนที่น้ำท่วม</p></noscript>
+
+<script src="vendor/leaflet/leaflet.js"></script>
+<script src="vendor/markercluster/leaflet.markercluster.js"></script>
+<script src="js/config.js"></script>
+<script src="js/util.js"></script>
+<script src="js/data.js"></script>
+<script src="js/charts.js"></script>
+<script src="js/map.js"></script>
+<script src="js/reports.js"></script>
+<script src="js/watch.js"></script>
+<script src="js/route.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>
