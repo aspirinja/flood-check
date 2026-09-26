@@ -47,8 +47,8 @@
       if (s.sv > 0 && !dim && FM.ui.sevOn(s.sv)) {
         const on = sel && sel.type === 'seg' && sel.id === s.id;
         const m = L.marker([s.mid.lat, s.mid.lon], {
-          icon: L.divIcon({ className: '', html: '<div class="pin s' + s.sv + (on ? ' sel' : '') + '">' + s.d + '</div>', iconSize: [30, 30] }),
-          title: s.road + ' ' + s.d + ' ซม. ' + FM.SEV[s.sv].t, keyboard: true, riseOnHover: true
+          icon: L.divIcon({ className: '', html: '<div class="pin s' + s.sv + (on ? ' sel' : '') + '">' + (s.lv ? ({ no: '✕', hard: '!' }[s.lv] || '') : s.d) + '</div>', iconSize: [30, 30] }),
+          title: s.road + ' ' + (s.lv ? '' : s.d + ' ซม. ') + FM.SEV[s.sv].t, keyboard: true, riseOnHover: true
         });
         m.sev = s.sv;
         m.on('click', () => { if (!api.picking) FM.select({ type: 'seg', id: s.id }); });
