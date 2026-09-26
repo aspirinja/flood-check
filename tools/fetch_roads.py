@@ -14,6 +14,7 @@
 """
 import gzip
 import json
+import math
 import os
 import re
 import sys
@@ -140,6 +141,102 @@ def parse_traffy(raw, now):
     return out
 
 
+# ---------- จับจุดเหตุการณ์ให้ตรงกับเส้นถนนจริงจาก OpenStreetMap (Overpass) ----------
+OVERPASS = ["https://overpass-api.de/api/interpreter", "https://overpass.kumi.systems/api/interpreter"]
+HW = "motorway|trunk|primary|secondary|tertiary|unclassified|residential|service|motorway_link|trunk_link|primary_link|secondary_link"
+HW_RANK = {"trunk": 0, "primary": 0, "secondary": 0, "tertiary": 1, "unclassified": 1, "residential": 2, "service": 3}
+SNAP_M = 45        # ระยะสูงสุดจากจุดถึงเส้นถนน (เมตร)
+SNAP_REF_M = 200   # ถ้าชื่อเป็นทางหลวงหมายเลข อนุญาตให้ไกลกว่านี้ถ้าเลขตรงกัน
+CLIP_M = 350       # วาดเฉพาะช่วงถนนที่อยู่ใกล้จุดรายงานไม่เกินระยะนี้
+
+
+def _xy(lat, lon, lat0):
+    return (lon * 111320.0 * math.cos(math.radians(lat0)), lat * 110540.0)
+
+
+def _dist_seg(p, a, b):
+    ax, ay, bx, by = a[0], a[1], b[0], b[1]
+    dx, dy = bx - ax, by - ay
+    L = dx * dx + dy * dy
+    t = 0 if L == 0 else max(0, min(1, ((p[0] - ax) * dx + (p[1] - ay) * dy) / L))
+    return math.hypot(p[0] - (ax + t * dx), p[1] - (ay + t * dy))
+
+
+def snap_incident(inc, ways):
+    """คืนรายการพิกัด [[lat,lon],...] ของถนนที่ใกล้จุดที่สุด (เลือกเลขทางหลวงที่ตรงก่อน) หรือ None"""
+    lat0 = inc["lat"]
+    p = _xy(inc["lat"], inc["lon"], lat0)
+    m = re.search(r"ทางหลวง\s*(\d+)", inc["title"])
+    want = m.group(1) if m else None
+    best = None
+    for w in ways:
+        pts = [_xy(g["lat"], g["lon"], lat0) for g in w["geometry"]]
+        if len(pts) < 2:
+            continue
+        d = min(_dist_seg(p, pts[k], pts[k + 1]) for k in range(len(pts) - 1))
+        tags = w.get("tags", {})
+        hw = tags.get("highway", "")
+        ref_ok = want is not None and want in re.split(r"[;,\s]+", tags.get("ref", ""))
+        if ref_ok:
+            if d > SNAP_REF_M:
+                continue
+            score = (0, d)
+        else:
+            if d > SNAP_M or hw.endswith("_link") or hw == "motorway":   # ทางด่วน/ทางยกระดับมักไม่ใช่ถนนที่น้ำท่วม
+                continue
+            score = (1 + HW_RANK.get(hw, 3), d)
+        if best is None or score < best[0]:
+            best = (score, w, pts)
+    if not best:
+        return None
+    w, pts = best[1], best[2]
+    keep = [k for k, q in enumerate(pts) if math.hypot(q[0] - p[0], q[1] - p[1]) <= CLIP_M]
+    if not keep:   # จุดอยู่กลางช่วงยาวที่ไม่มีจุดหักมุมใกล้ ให้ใช้ช่วงที่ใกล้ที่สุด
+        k = min(range(len(pts) - 1), key=lambda k: _dist_seg(p, pts[k], pts[k + 1]))
+        keep = [k, k + 1]
+    lo, hi = max(0, min(keep) - 1), min(len(pts) - 1, max(keep) + 1)
+    return [[round(g["lat"], 5), round(g["lon"], 5)] for g in w["geometry"][lo:hi + 1]]
+
+
+def overpass_query(incs):
+    body = "".join('way(around:%d,%s,%s)[highway~"^(%s)$"];' % (SNAP_REF_M, i["lat"], i["lon"], HW) for i in incs)
+    data = "data=" + urllib.parse.quote("[out:json][timeout:60];(" + body + ");out tags geom;")
+    last = None
+    for url in OVERPASS:
+        try:
+            req = urllib.request.Request(url, data=data.encode(), headers={"User-Agent": "flood-check/1.0", "Content-Type": "application/x-www-form-urlencoded", "Accept-Encoding": "gzip"})
+            with urllib.request.urlopen(req, timeout=60) as r:
+                raw = r.read()
+                if (r.headers.get("Content-Encoding") or "").lower() == "gzip":
+                    raw = gzip.decompress(raw)
+            return json.loads(raw.decode("utf-8"))["elements"]
+        except Exception as e:
+            last = e
+            print(f"overpass {url} ล้มเหลว: {e}", file=sys.stderr)
+    raise last
+
+
+def attach_geometry(incidents):
+    """เติมฟิลด์ g (เส้นถนน) ให้เหตุการณ์ที่จับคู่ได้ ถ้า Overpass ล้มเหลวจะข้าม ไม่กระทบข้อมูลอื่น"""
+    if FIXTURE or not incidents:
+        return 0
+    n = 0
+    try:
+        for k in range(0, len(incidents), 40):
+            chunk = incidents[k:k + 40]
+            ways = overpass_query(chunk)
+            for inc in chunk:
+                g = snap_incident(inc, ways)
+                if g:
+                    inc["g"] = g
+                    n += 1
+            time.sleep(1)
+    except Exception as e:
+        print(f"ข้ามการจับคู่เส้นถนน: {e}", file=sys.stderr)
+    print(f"จับคู่เส้นถนนได้ {n}/{len(incidents)} จุด", flush=True)
+    return n
+
+
 def main():
     now = datetime.now(TZ)
     if FIXTURE:
@@ -165,6 +262,7 @@ def main():
     if ok == 0:   # ไม่ได้ข้อมูลเลย ห้ามเผยแพร่ไฟล์ว่าง ให้ล้มเหลวเพื่อให้เห็นปัญหา
         print("ไม่ได้ข้อมูลจากทั้งสองแหล่ง จึงไม่เขียนไฟล์", file=sys.stderr)
         return 1
+    attach_geometry(incidents)
     count = lambda p: sum(1 for i in incidents if i["pass"] == p)
     doc = {"updatedAt": iso(now), "sources": status,
            "summary": {"blocked": count("no"), "avoid": count("hard"), "passable": count("yes"), "unknown": count("unk"), "reports": len(reports)},
