@@ -4,6 +4,8 @@ window.FLOOD_CONFIG = {
   dataUrl: 'data/flood.json',
   /* ไฟล์สถานีวัดฝนและระดับน้ำทางการ (สร้างโดย tools/fetch_thaiwater.py) ใส่ '' เพื่อปิดส่วนนี้ */
   officialUrl: 'https://raw.githubusercontent.com/aspirinja/flood-check/data/official.json',
+  /* ไฟล์ถนนที่มีรายงานน้ำท่วม (สร้างโดย tools/fetch_roads.py) ใส่ '' เพื่อปิดส่วนนี้ */
+  roadsUrl: 'https://raw.githubusercontent.com/aspirinja/flood-check/data/roads.json',
   refreshSeconds: 120,          // ดึงข้อมูลใหม่ทุกกี่วินาที
   staleAfterMinutes: 120,       // ข้อมูลเก่ากว่านี้ถือว่าไม่ทันสมัย
 
