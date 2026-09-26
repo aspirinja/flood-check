@@ -36,7 +36,7 @@
   const LINE = { no: '#d32f2f', hard: '#f59e0b', yes: '#facc15', unk: '#facc15' };
   function drawRoads() {
     rdLayer.clearLayers();
-    const R = FM.roads; if (!R) return;
+    const R = FM.roads; if (!R || (FM.data && FM.data.meta.levelOnly)) return;   // ข้อมูลชุดเดียวกันวาดโดยแผนที่หลักแล้ว
     const inc = R.incidents.slice().reverse();   // วาดระดับสูงทีหลังเพื่อให้อยู่ด้านบน
     const pop = i => { const p = PASS[i.pass] || PASS.unk; return '<b>' + esc(i.title) + '</b><br><span class="chip s' + p[1] + '">' + p[0] + '</span><br><small>' + (i.by === 'DOH' ? 'กรมทางหลวง' : 'ผู้ร่วมรายงาน iTIC/Longdo') + ' · ' + ago(i.at) + '<br>ที่มา Longdo Traffic · เส้นถนนจาก OpenStreetMap (ตำแหน่งโดยประมาณ)</small>'; };
     inc.forEach(i => {   // เส้นถนนจริง (ขอบขาวบางๆ ให้เห็นชัดบนแผนที่)
@@ -103,6 +103,8 @@
     if (!box) return;
     box.innerHTML = roadsHTML() + stationsHTML();
     toggle(box, '#rdshow', rdLayer, drawRoads, v => { rdShown = v; });
+    const rdb = box.querySelector('#rdshow');
+    if (rdb && FM.data && FM.data.meta.levelOnly) rdb.closest('label').style.display = 'none';
     toggle(box, '#tfshow', tfLayer, drawReports, v => { tfShown = v; });
     toggle(box, '#offshow', stLayer, drawStations, v => { stShown = v; });
     try { if (rdShown && FM.roads && FM.map && FM.map.map) { drawRoads(); rdLayer.addTo(FM.map.map); } } catch (e) { console.info('วาดเส้นถนนไม่สำเร็จ:', e.message); }
