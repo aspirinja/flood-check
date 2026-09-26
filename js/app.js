@@ -97,6 +97,7 @@
       '<p class="hl-text">ถนนห้ามผ่าน <b>' + c[3] + '</b> ช่วง ผ่านลำบาก <b>' + c[2] + '</b> ช่วง เฝ้าระวัง <b>' + c[1] + '</b> ช่วง จากที่ตรวจวัดทั้งหมด ' + D.segs.length + ' ช่วง</p></div>';
     if (D.meta.mode === 'sample') h += '<div class="warnbox sample"><b>' + (FM.demo ? 'โหมดสาธิต' : 'ข้อมูลตัวอย่าง') + '</b> ตัวเลขทั้งหมดเป็นข้อมูลสมมติสำหรับทดสอบแอป ไม่ใช่สถานการณ์จริง ' + (FM.demo ? 'ระดับน้ำจะขึ้นลงเองทุก 8 วินาทีเพื่อลองระบบแจ้งเตือน' : '') + '</div>';
     h += '<div class="stats" id="ovstats">' + statCells(c, { toggle: false }) + '</div>';
+    h += '<div id="ovoff"></div>';
 
     /* เปลี่ยนแปลงจากครั้งก่อน */
     const ch = FM.changes;
@@ -141,7 +142,8 @@
     h += '<div class="src">ข้อมูลทางการและประกาศจากหน่วยงาน: ' + cfg.officialLinks.map(l => '<a href="' + esc(l.url) + '" target="_blank" rel="noopener">' + esc(l.name) + '</a>').join('') +
       '<p>แอปนี้แสดงข้อมูลเพื่อประกอบการตัดสินใจ ไม่ใช่ประกาศทางการ และอาจคลาดเคลื่อนจากสภาพจริง ถ้าต้องเดินทางในพื้นที่น้ำท่วม ให้ประเมินสภาพหน้างานอีกครั้ง</p></div>';
     box.innerHTML = h;
-    $$('#ovstats .stat', box).forEach(b => { b.onclick = () => { S.sev = new Set([+b.dataset.sv]); S.mode = 'all'; renderAll(); setTab('list'); }; });
+    if (FM.emit) FM.emit('overview');
+    $('#ovstats .stat', box).forEach(b => { b.onclick = () => { S.sev = new Set([+b.dataset.sv]); S.mode = 'all'; renderAll(); setTab('list'); }; });
     $$('.lnk', box).forEach(b => { b.onclick = () => UI.select({ type: 'seg', id: b.dataset.id }, { fly: true }); });
     $$('.pbar', box).forEach(b => { b.onclick = () => { S.pv = b.dataset.pv; renderAll(); fitFiltered(); setTab('list'); }; });
     bindItems(box);
