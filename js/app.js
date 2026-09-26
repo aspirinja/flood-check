@@ -7,7 +7,7 @@
   const S = { pv: 'ทั้งหมด', q: '', sev: new Set([1, 2, 3]), mode: 'all', tab: 'overview' };
   const UI = (FM.ui = { sel: null });
   const PVS = ['ทั้งหมด', 'กทม.', 'นนทบุรี', 'ปทุมธานี', 'สมุทรปราการ', 'สมุทรสาคร', 'นครปฐม'];
-  const trendTxt = s => (s.d > 0 ? '<span>' + FM.TREND[s.trend] + '</span>' : '');
+  const trendTxt = s => (s.d > 0 && !s.lv ? '<span>' + FM.TREND[s.trend] + '</span>' : '');
 
   UI.match = s => {
     if (S.pv !== 'ทั้งหมด' && s.pvs.indexOf(S.pv) < 0) return false;
@@ -51,6 +51,8 @@
     const b = $('#modebadge');
     b.hidden = !(D.meta.mode === 'sample');
     b.textContent = FM.demo ? 'โหมดสาธิต' : 'ข้อมูลตัวอย่าง';
+    const pvBox = $('#pv'); if (pvBox) pvBox.style.display = D.meta.levelOnly ? 'none' : '';
+    const stBox = $('#stats'); if (stBox) stBox.style.gridTemplateColumns = D.meta.levelOnly ? 'repeat(3,1fr)' : '';
   }
   setInterval(updateFresh, 30000);
 
@@ -83,7 +85,7 @@
   function statCells(c, opt) {
     return SEVS().map(i => '<button class="stat" type="button" data-sv="' + i + '" style="--sc:var(--s' + i + ')" aria-pressed="' + (opt.toggle ? S.sev.has(i) : 'false') + '"><b>' + c[i] + '</b><span><i class="dot"></i>' + FM.SEV[i].t + '</span><small>' + FM.SEV[i].r + '</small></button>').join('');
   }
-  const SEVS = () => [0, 1, 2, 3];
+  const SEVS = () => (FM.data && FM.data.meta.levelOnly ? [1, 2, 3] : [0, 1, 2, 3]);
   function countAll(list) { const c = [0, 0, 0, 0]; list.forEach(s => c[s.sv]++); return c; }
 
   /* ---------- ภาพรวม ---------- */
@@ -94,9 +96,10 @@
     const level = c[3] >= 3 ? 3 : (c[3] >= 1 || c[2] >= 3) ? 2 : (c[1] + c[2] + c[3]) > 0 ? 1 : 0;
     const LT = ['สถานการณ์ปกติ', 'เฝ้าระวัง', 'เฝ้าระวังสูง', 'น้ำท่วมรุนแรงหลายจุด'];
     let h = '<div class="headline lv' + level + '"><div class="hl-top"><span class="chip s' + level + '">' + LT[level] + '</span><span class="hl-time">อัปเดต ' + FM.ago(D.meta.updatedAt) + '</span></div>' +
-      '<p class="hl-text">ถนนห้ามผ่าน <b>' + c[3] + '</b> ช่วง ผ่านลำบาก <b>' + c[2] + '</b> ช่วง เฝ้าระวัง <b>' + c[1] + '</b> ช่วง จากที่ตรวจวัดทั้งหมด ' + D.segs.length + ' ช่วง</p></div>';
+      (D.meta.levelOnly ? '<p class="hl-text">ห้ามผ่าน <b>' + c[3] + '</b> จุด ควรเลี่ยง <b>' + c[2] + '</b> จุด ผ่านได้แต่มีน้ำท่วม <b>' + c[1] + '</b> จุด จากรายงานทั้งหมด ' + D.segs.length + ' จุด</p></div>' : '<p class="hl-text">ถนนห้ามผ่าน <b>' + c[3] + '</b> ช่วง ผ่านลำบาก <b>' + c[2] + '</b> ช่วง เฝ้าระวัง <b>' + c[1] + '</b> ช่วง จากที่ตรวจวัดทั้งหมด ' + D.segs.length + ' ช่วง</p></div>');
     if (D.meta.mode === 'sample') h += '<div class="warnbox sample"><b>' + (FM.demo ? 'โหมดสาธิต' : 'ข้อมูลตัวอย่าง') + '</b> ตัวเลขทั้งหมดเป็นข้อมูลสมมติสำหรับทดสอบแอป ไม่ใช่สถานการณ์จริง ' + (FM.demo ? 'ระดับน้ำจะขึ้นลงเองทุก 8 วินาทีเพื่อลองระบบแจ้งเตือน' : '') + '</div>';
-    h += '<div class="stats" id="ovstats">' + statCells(c, { toggle: false }) + '</div>';
+    if (D.meta.levelOnly) h += '<div class="warnbox"><b>ข้อมูลจริงจากรายงานการผ่านของเส้นทาง</b> ระดับ ห้ามผ่าน/ควรเลี่ยง/ผ่านได้ มาจากผู้ร่วมรายงาน Longdo/iTIC และกรมทางหลวง ไม่ใช่ความลึกน้ำเป็น ซม. และไม่ใช่ประกาศทางการ ถนนที่ไม่มีรายงานไม่ได้แปลว่าไม่ท่วม</div>';
+    h += '<div class="stats" id="ovstats"' + (D.meta.levelOnly ? ' style="grid-template-columns:repeat(3,1fr)"' : '') + '>' + statCells(c, { toggle: false }) + '</div>';
     h += '<div id="ovoff"></div>';
 
     /* เปลี่ยนแปลงจากครั้งก่อน */
@@ -104,7 +107,7 @@
     h += '<section class="sec"><h3>เปลี่ยนแปลงตั้งแต่คุณเปิดดูครั้งก่อน' + (ch && ch.since ? ' <small>(' + FM.ago(ch.since) + ')</small>' : '') + '</h3>';
     if (!ch || !ch.since) h += '<p class="note">เปิดครั้งแรกบนเครื่องนี้ จึงยังไม่มีข้อมูลเปรียบเทียบ ครั้งหน้าจะบอกว่าอะไรเปลี่ยนไป</p>';
     else {
-      const rows = [['newly', 'ท่วมใหม่', 's2'], ['up', 'น้ำเพิ่มขึ้น', 's3'], ['down', 'น้ำลดลง', 's0'], ['cleared', 'น้ำแห้งแล้ว', 's0']].filter(r => ch[r[0]].length);
+      const rows = (D.meta.levelOnly ? [['newly', 'มีรายงานใหม่', 's2'], ['up', 'ระดับแย่ลง', 's3'], ['down', 'ระดับดีขึ้น', 's0'], ['cleared', 'รายงานหมดอายุ', 's0']] : [['newly', 'ท่วมใหม่', 's2'], ['up', 'น้ำเพิ่มขึ้น', 's3'], ['down', 'น้ำลดลง', 's0'], ['cleared', 'น้ำแห้งแล้ว', 's0']]).filter(r => ch[r[0]].length);
       if (!rows.length) h += '<p class="note">ไม่มีการเปลี่ยนแปลงที่มีนัยสำคัญ</p>';
       else h += '<ul class="chg">' + rows.map(r => '<li><span class="chip ' + r[2] + '">' + r[1] + ' ' + ch[r[0]].length + '</span> ' + ch[r[0]].slice(0, 3).map(s => '<button class="lnk" type="button" data-id="' + s.id + '">' + esc(s.road) + '</button>').join(' ') + (ch[r[0]].length > 3 ? ' และอีก ' + (ch[r[0]].length - 3) : '') + '</li>').join('') + '</ul>';
     }
@@ -128,9 +131,11 @@
     });
     h += '</div><p class="note">ตัวเลขคือจำนวนช่วงถนนที่น้ำท่วมขังต่อช่วงที่ตรวจวัดในจังหวัดนั้น กดเพื่อดูบนแผนที่</p></section>';
 
+    if (D.meta.levelOnly) h = h.replace(/<section class="sec"><h3>แยกตามจังหวัด<\/h3>[\s\S]*?<\/section>/, '');
+
     /* น้ำสูงสุด */
     const top = D.segs.slice().sort((a, b) => b.d - a.d).filter(s => s.d >= cfg.thresholds[0]).slice(0, 5);
-    if (top.length) h += '<section class="sec"><h3>จุดที่น้ำสูงที่สุด</h3><div>' + top.map(s => itemHTML(s, false)).join('') + '</div></section>';
+    if (top.length) h += '<section class="sec"><h3>' + (D.meta.levelOnly ? 'จุดที่ควรระวังที่สุด' : 'จุดที่น้ำสูงที่สุด') + '</h3><div>' + top.map(s => itemHTML(s, false)).join('') + '</div></section>';
 
     /* แหล่งข้อมูล */
     h += '<section class="sec"><h3>แหล่งข้อมูล</h3>';
@@ -154,6 +159,11 @@
     return Object.keys(FM.VEH).map(k => { const ok = d <= FM.VEH[k].max; return '<span class="' + (ok ? 'ok' : 'no') + '"><b>' + (ok ? '✓' : '✕') + '</b>' + FM.VEH[k].name + '</span>'; }).join('');
   }
   function itemHTML(s, pass) {
+    if (s.lv) {
+      return '<button class="item" type="button" data-id="' + s.id + '"><span class="it-main"><span class="it-road">' + esc(s.road) + '</span><span class="it-sec">รายงานผ่าน Longdo / iTIC / กรมทางหลวง</span></span>' +
+        '<span class="it-depth"><strong>' + ({ no: '✕', hard: '!', yes: '✓' }[s.lv] || '?') + '</strong></span>' +
+        '<span class="it-meta"><span class="chip s' + s.sv + '">' + FM.SEV[s.sv].t + '</span><span>' + FM.ago(s.updated) + '</span></span></button>';
+    }
     const A = FM.data.nodes[s.a], B = FM.data.nodes[s.b];
     return '<button class="item" type="button" data-id="' + s.id + '"><span class="it-main"><span class="it-road">' + esc(s.road) + '</span><span class="it-sec">' + esc(A.name) + ' → ' + esc(B.name) + ' · ' + esc(A.province === B.province ? A.province : A.province + ' / ' + B.province) + '</span></span>' +
       '<span class="it-depth"><strong>' + s.d + '</strong><small>ซม.</small></span>' +
@@ -230,14 +240,14 @@
       const s = FM.data.byId[sel.id]; if (!s) { box.innerHTML = ''; return; }
       const A = FM.data.nodes[s.a], B = FM.data.nodes[s.b];
       const hl = Object.keys(FM.VEH).map(k => ({ v: FM.VEH[k].max, label: FM.VEH[k].name }));
-      h = '<div class="detail"><button class="close" type="button" id="dclose" aria-label="ปิดรายละเอียด">×</button><h3>' + esc(s.road) + '</h3><div class="it-sec">' + esc(A.name) + ' → ' + esc(B.name) + ' · ' + esc(A.province === B.province ? A.province : A.province + ' / ' + B.province) + '</div>' +
-        '<div class="row"><span class="big">' + s.d + '<small>ซม.</small></span><span class="chip s' + s.sv + '">' + FM.SEV[s.sv].t + '</span>' + trendTxt(s) + '<span>อัปเดต ' + FM.ago(s.updated) + '</span></div>' +
+      h = '<div class="detail"><button class="close" type="button" id="dclose" aria-label="ปิดรายละเอียด">×</button><h3>' + esc(s.road) + '</h3><div class="it-sec">' + (s.lv ? 'รายงานผ่าน Longdo / iTIC / กรมทางหลวง' : esc(A.name) + ' → ' + esc(B.name) + ' · ' + esc(A.province === B.province ? A.province : A.province + ' / ' + B.province)) + '</div>' +
+        '<div class="row"><span class="big">' + (s.lv ? '' : s.d + '<small>ซม.</small>') + '</span><span class="chip s' + s.sv + '">' + FM.SEV[s.sv].t + '</span>' + trendTxt(s) + '<span>อัปเดต ' + FM.ago(s.updated) + '</span></div>' +
         (s.source ? '<div class="row">แหล่งข้อมูล: ' + esc(srcName(s.source)) + '</div>' : '') +
-        (s.sv === 0 ? '<div class="row">น้ำไม่ท่วมขัง รถทุกประเภทผ่านได้ตามปกติ</div>' : '<div class="pass">' + passChips(s.d) + '</div>') +
-        '<h4>ระดับน้ำย้อนหลัง</h4>' + FM.charts.line(s.history, { stepMin: FM.data.meta.step, hlines: hl, unit: 'ซม.', color: 'var(--s' + Math.max(1, s.sv) + ')', label: 'กราฟระดับน้ำย้อนหลังของ ' + s.road }) +
-        '<div class="actions"><button class="btn primary" type="button" id="dwatch">ติดตามจุดนี้</button><a class="btn linkbtn" target="_blank" rel="noopener" href="https://www.google.com/maps/search/?api=1&query=' + s.mid.lat + ',' + s.mid.lon + '">เปิดใน Google Maps</a></div></div>';
+        (s.lv ? '<div class="row">ระดับนี้มาจากรายงานการผ่านของเส้นทาง ไม่ใช่ความลึกน้ำ ตำแหน่งเส้นเป็นค่าโดยประมาณจาก OpenStreetMap ควรประเมินสภาพหน้างานอีกครั้ง</div>' : s.sv === 0 ? '<div class="row">น้ำไม่ท่วมขัง รถทุกประเภทผ่านได้ตามปกติ</div>' : '<div class="pass">' + passChips(s.d) + '</div>') +
+        (s.lv ? '' : '<h4>ระดับน้ำย้อนหลัง</h4>' + FM.charts.line(s.history, { stepMin: FM.data.meta.step, hlines: hl, unit: 'ซม.', color: 'var(--s' + Math.max(1, s.sv) + ')', label: 'กราฟระดับน้ำย้อนหลังของ ' + s.road })) +
+        '<div class="actions">' + (s.lv ? '' : '<button class="btn primary" type="button" id="dwatch">ติดตามจุดนี้</button>') + '<a class="btn linkbtn" target="_blank" rel="noopener" href="https://www.google.com/maps/search/?api=1&query=' + s.mid.lat + ',' + s.mid.lon + '">เปิดใน Google Maps</a></div></div>';
       box.innerHTML = h;
-      $('#dwatch').onclick = () => openForm('watch', { name: s.road + ' ' + A.name, pos: { lat: s.mid.lat, lon: s.mid.lon }, radius: 1000, threshold: 10 });
+      if ($('#dwatch')) $('#dwatch').onclick = () => openForm('watch', { name: s.road + ' ' + A.name, pos: { lat: s.mid.lat, lon: s.mid.lon }, radius: 1000, threshold: 10 });
     } else {
       const r = FM.reports.list.find(x => x.id === sel.id); if (!r) { box.innerHTML = ''; return; }
       const sv = FM.sevOf(r.depth), ok = r.c >= cfg.reportsConfirmNeeded, done = FM.reports.mine(r.id) || FM.reports.confirmedByMe(r.id);
@@ -258,6 +268,7 @@
   /* ---------- จุดติดตาม ---------- */
   function renderWatch() {
     const box = $('#watchbody'), items = FM.watch.items();
+    if (FM.data && FM.data.meta.levelOnly) { box.innerHTML = '<div class="empty">ยังไม่รองรับการติดตามและแจ้งเตือนกับข้อมูลจริง<br><small>ข้อมูลจริงเป็นระดับการผ่านของเส้นทาง ไม่มีความลึกน้ำ จึงยังตั้งเกณฑ์แจ้งเตือนเป็น ซม. ไม่ได้ แผนที่และรายการจุดท่วมใช้งานได้ตามปกติ</small></div>'; return; }
     const perm = 'Notification' in window ? Notification.permission : 'unsupported';
     let h = '<div class="notif">';
     if (perm === 'granted') h += '<p><span class="chip s0">เปิดแจ้งเตือนแล้ว</span> ระบบจะเด้งเตือนเมื่อน้ำใกล้จุดที่ติดตามสูงขึ้นถึงระดับที่ตั้งไว้ ขณะที่เปิดหน้านี้ค้างไว้ในเบราว์เซอร์ ยังไม่ส่งข้อความเมื่อปิดหน้าไปแล้ว</p>';
