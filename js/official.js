@@ -8,8 +8,8 @@
   FM.official = null;
   FM.roads = null;
   if (!cfg.officialUrl && !cfg.roadsUrl) return;
-  const stLayer = L.layerGroup(), rdLayer = L.layerGroup();
-  let stShown = false, rdShown = false;
+  const stLayer = L.layerGroup(), rdLayer = L.layerGroup(), tfLayer = L.layerGroup();
+  let stShown = false, rdShown = true, tfShown = false;   // เส้นถนนแสดงเป็นค่าเริ่มต้น
 
   /* เกณฑ์ฝนสะสม 24 ชม. ตามการจัดระดับของกรมอุตุนิยมวิทยา (มม.) */
   const RAIN = [[90, 'หนักมาก', 3], [35, 'หนัก', 2], [10, 'ปานกลาง', 1], [0, 'เล็กน้อย', 0]];
@@ -33,17 +33,31 @@
     });
   }
 
+  const LINE = { no: '#d32f2f', hard: '#f59e0b', yes: '#facc15', unk: '#facc15' };
   function drawRoads() {
     rdLayer.clearLayers();
     const R = FM.roads; if (!R) return;
+    const inc = R.incidents.slice().reverse();   // วาดระดับสูงทีหลังเพื่อให้อยู่ด้านบน
+    const pop = i => { const p = PASS[i.pass] || PASS.unk; return '<b>' + esc(i.title) + '</b><br><span class="chip s' + p[1] + '">' + p[0] + '</span><br><small>' + (i.by === 'DOH' ? 'กรมทางหลวง' : 'ผู้ร่วมรายงาน iTIC/Longdo') + ' · ' + ago(i.at) + '<br>ที่มา Longdo Traffic · เส้นถนนจาก OpenStreetMap (ตำแหน่งโดยประมาณ)</small>'; };
+    inc.forEach(i => {   // เส้นถนนจริง (ขอบขาวบางๆ ให้เห็นชัดบนแผนที่)
+      if (!i.g || i.g.length < 2) return;
+      const c = LINE[i.pass] || LINE.unk, w = i.pass === 'no' || i.pass === 'hard' ? 6 : 4;
+      L.polyline(i.g, { color: '#fff', weight: w + 3, opacity: .85, interactive: false }).addTo(rdLayer);
+      L.polyline(i.g, { color: c, weight: w, opacity: .95, lineCap: 'round', lineJoin: 'round' }).bindPopup(pop(i)).addTo(rdLayer);
+    });
+    inc.forEach(i => {   // จุดที่จับคู่กับเส้นถนนไม่ได้ ใช้หมุดเล็กแทน
+      if (i.g && i.g.length > 1) return;
+      const p = PASS[i.pass] || PASS.unk;
+      L.marker([i.lat, i.lon], { icon: L.divIcon({ className: '', html: '<div class="st rd k' + p[1] + '">' + (i.pass === 'no' ? '✕' : i.pass === 'hard' ? '!' : '') + '</div>', iconSize: [22, 22] }), keyboard: false }).bindPopup(pop(i)).addTo(rdLayer);
+    });
+  }
+
+  function drawReports() {
+    tfLayer.clearLayers();
+    const R = FM.roads; if (!R) return;
     R.reports.forEach(t => {
       L.marker([t.lat, t.lon], { icon: L.divIcon({ className: '', html: '<div class="st tf' + (t.help ? ' help' : '') + '"></div>', iconSize: [14, 14] }), keyboard: false })
-        .bindPopup('<b>' + (t.help ? 'ประชาชนขอความช่วยเหลือ' : 'ประชาชนแจ้งน้ำท่วม') + '</b> (ยังไม่ตรวจสอบ)<br><small>เขต' + esc(t.district) + ' · สถานะ ' + esc(t.state) + ' · ' + ago(t.at) + '<br>ที่มา Traffy Fondue</small>').addTo(rdLayer);
-    });
-    R.incidents.slice().reverse().forEach(i => {  // วาดระดับสูงทีหลังเพื่อให้อยู่ด้านบน
-      const p = PASS[i.pass] || PASS.unk;
-      L.marker([i.lat, i.lon], { icon: L.divIcon({ className: '', html: '<div class="st rd k' + p[1] + '">' + (i.pass === 'no' ? '✕' : i.pass === 'hard' ? '!' : '') + '</div>', iconSize: [22, 22] }), keyboard: false })
-        .bindPopup('<b>' + esc(i.title) + '</b><br><span class="chip s' + p[1] + '">' + p[0] + '</span><br><small>' + (i.by === 'DOH' ? 'กรมทางหลวง' : 'ผู้ร่วมรายงาน iTIC/Longdo') + ' · ' + ago(i.at) + '<br>ที่มา Longdo Traffic</small>').addTo(rdLayer);
+        .bindPopup('<b>' + (t.help ? 'ประชาชนขอความช่วยเหลือ' : 'ประชาชนแจ้งน้ำท่วม') + '</b> (ยังไม่ตรวจสอบ)<br><small>เขต' + esc(t.district) + ' · สถานะ ' + esc(t.state) + ' · ' + ago(t.at) + '<br>ที่มา Traffy Fondue</small>').addTo(tfLayer);
     });
   }
 
@@ -56,8 +70,9 @@
     const top = R.incidents.filter(i => i.pass === 'no' || i.pass === 'hard').slice(0, 8);
     if (top.length) h += '<ul class="chg">' + top.map(i => '<li><span class="chip s' + PASS[i.pass][1] + '">' + PASS[i.pass][0] + '</span> ' + esc(i.title.replace(/\s*\((ผ่านไม่ได้|ผ่านได้)\)\s*$/, '')) + ' <small>' + ago(i.at) + '</small></li>').join('') + '</ul>';
     else h += '<p class="note">ตอนนี้ไม่มีจุดที่ระบุว่าห้ามผ่านหรือควรเลี่ยงในพื้นที่กรุงเทพฯ และปริมณฑล</p>';
-    h += '<label class="note"><input type="checkbox" id="rdshow"' + (rdShown ? ' checked' : '') + '> แสดงจุดถนนท่วมบนแผนที่ (วงกลมเล็กสีเหลืองคือประชาชนแจ้ง ยังไม่ตรวจสอบ)</label>';
-    h += '<p class="note">ที่มา: Longdo Traffic / iTIC / กรมทางหลวง (รายงานการผ่านของเส้นทาง) และ Traffy Fondue (เรื่องแจ้งจากประชาชน ยังไม่ผ่านการตรวจสอบ) ไม่ใช่ประกาศทางการ ถนนที่ไม่มีรายงานไม่ได้แปลว่าไม่ท่วม ให้ประเมินสภาพหน้างานอีกครั้ง</p></section>';
+    h += '<p class="note"><span style="color:#d32f2f;font-weight:700">━ เส้นแดง</span> ห้ามผ่าน · <span style="color:#f59e0b;font-weight:700">━ เส้นส้ม</span> ควรเลี่ยง · <span style="color:#d4a500;font-weight:700">━ เส้นเหลือง</span> ผ่านได้/ไม่ระบุ (เส้นอิงตำแหน่งที่รายงานและแผนที่ OpenStreetMap เป็นค่าโดยประมาณ)</p>';
+    h += '<label class="note"><input type="checkbox" id="rdshow"' + (rdShown ? ' checked' : '') + '> แสดงเส้นถนนที่มีรายงานบนแผนที่</label><br><label class="note"><input type="checkbox" id="tfshow"' + (tfShown ? ' checked' : '') + '> แสดงจุดที่ประชาชนแจ้ง (Traffy Fondue ยังไม่ตรวจสอบ)</label>';
+    h += '<p class="note">ที่มา: Longdo Traffic / iTIC / กรมทางหลวง (รายงานการผ่านของเส้นทาง) เส้นถนนจาก © OpenStreetMap contributors และ Traffy Fondue (เรื่องแจ้งจากประชาชน ยังไม่ผ่านการตรวจสอบ) ไม่ใช่ประกาศทางการ ถนนที่ไม่มีรายงานไม่ได้แปลว่าไม่ท่วม ให้ประเมินสภาพหน้างานอีกครั้ง</p></section>';
     return h;
   }
 
@@ -88,7 +103,9 @@
     if (!box) return;
     box.innerHTML = roadsHTML() + stationsHTML();
     toggle(box, '#rdshow', rdLayer, drawRoads, v => { rdShown = v; });
+    toggle(box, '#tfshow', tfLayer, drawReports, v => { tfShown = v; });
     toggle(box, '#offshow', stLayer, drawStations, v => { stShown = v; });
+    try { if (rdShown && FM.roads && FM.map && FM.map.map) { drawRoads(); rdLayer.addTo(FM.map.map); } } catch (e) { console.info('วาดเส้นถนนไม่สำเร็จ:', e.message); }
   }
 
   async function grab(url) {
@@ -114,6 +131,7 @@
       if (!R || !Array.isArray(R.incidents) || !Array.isArray(R.reports)) throw new Error('รูปแบบไฟล์ไม่ถูกต้อง');
       FM.roads = R;
       if (rdShown) drawRoads();
+      if (tfShown) drawReports();
     } catch (e) { FM.roads = null; console.info('ไม่มีข้อมูลถนนท่วม:', e.message); }
   }
 
