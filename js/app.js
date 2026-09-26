@@ -143,7 +143,7 @@
       '<p>แอปนี้แสดงข้อมูลเพื่อประกอบการตัดสินใจ ไม่ใช่ประกาศทางการ และอาจคลาดเคลื่อนจากสภาพจริง ถ้าต้องเดินทางในพื้นที่น้ำท่วม ให้ประเมินสภาพหน้างานอีกครั้ง</p></div>';
     box.innerHTML = h;
     if (FM.emit) FM.emit('overview');
-    $('#ovstats .stat', box).forEach(b => { b.onclick = () => { S.sev = new Set([+b.dataset.sv]); S.mode = 'all'; renderAll(); setTab('list'); }; });
+    $$('#ovstats .stat', box).forEach(b => { b.onclick = () => { S.sev = new Set([+b.dataset.sv]); S.mode = 'all'; renderAll(); setTab('list'); }; });
     $$('.lnk', box).forEach(b => { b.onclick = () => UI.select({ type: 'seg', id: b.dataset.id }, { fly: true }); });
     $$('.pbar', box).forEach(b => { b.onclick = () => { S.pv = b.dataset.pv; renderAll(); fitFiltered(); setTab('list'); }; });
     bindItems(box);
