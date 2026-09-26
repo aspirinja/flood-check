@@ -37,10 +37,13 @@
     D.segs.forEach(s => {
       const dim = !FM.ui.match(s);
       const w = SEGW[s.sv];
-      L.polyline(s.geom, { color: 'var(--halo)', weight: w + 4, opacity: dim ? 0.12 : 0.9, lineCap: 'round', interactive: false }).addTo(segLayer);
-      L.polyline(s.geom, { color: s.sv ? 'var(--s' + s.sv + ')' : 'var(--road)', weight: w, opacity: dim ? 0.18 : 1, lineCap: 'round', dashArray: s.sv === 3 ? '10 6' : null, interactive: false }).addTo(segLayer);
-      const hit = L.polyline(s.geom, { color: '#000', weight: 24, opacity: 0.01, interactive: true }).addTo(segLayer);
-      hit.on('click', () => { if (!api.picking) FM.select({ type: 'seg', id: s.id }); });
+      const drawLine = D.meta.mode !== 'sample';
+      if (drawLine) L.polyline(s.geom, { color: 'var(--halo)', weight: w + 4, opacity: dim ? 0.12 : 0.9, lineCap: 'round', interactive: false }).addTo(segLayer);
+      if (drawLine) L.polyline(s.geom, { color: s.sv ? 'var(--s' + s.sv + ')' : 'var(--road)', weight: w, opacity: dim ? 0.18 : 1, lineCap: 'round', dashArray: s.sv === 3 ? '10 6' : null, interactive: false }).addTo(segLayer);
+      if (drawLine) {
+        const hit = L.polyline(s.geom, { color: '#000', weight: 24, opacity: 0.01, interactive: true }).addTo(segLayer);
+        hit.on('click', () => { if (!api.picking) FM.select({ type: 'seg', id: s.id }); });
+      }
       if (s.sv > 0 && !dim && FM.ui.sevOn(s.sv)) {
         const on = sel && sel.type === 'seg' && sel.id === s.id;
         const m = L.marker([s.mid.lat, s.mid.lon], {
