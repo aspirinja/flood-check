@@ -93,7 +93,7 @@
   /* ---------- ส่วนแสดงผล ---------- */
   function fillOptions() {
     const D = FM.data;
-    if (!D) return;
+    if (!D || D.meta.levelOnly) return;
     const groups = {};
     Object.values(D.nodes).forEach(n => { (groups[n.province] = groups[n.province] || []).push(n); });
     let html = '<option value="me">📍 ตำแหน่งของฉัน</option>';
@@ -113,6 +113,12 @@
   R.render = function (fit) {
     const out = $('#routeout');
     if (!FM.data) { out.innerHTML = ''; return; }
+    if (FM.data.meta.levelOnly) {
+      document.querySelectorAll('#p-route .form, #p-route fieldset').forEach(e => { e.style.display = 'none'; });
+      out.innerHTML = '<div class="result"><h3>ยังไม่รองรับการหาเส้นทางกับข้อมูลจริง</h3><p>ข้อมูลจริงเป็นระดับการผ่านของเส้นทางเป็นจุดๆ ไม่มีความลึกน้ำและไม่ได้ต่อเป็นโครงข่ายถนน จึงยังคำนวณเส้นทางเลี่ยงน้ำไม่ได้ ดูจุดห้ามผ่านและควรเลี่ยงได้ที่แท็บ จุดท่วม และบนแผนที่</p></div>';
+      FM.map.clearRoute();
+      return;
+    }
     build();
     const res = R.plan(R.from, R.to, R.veh);
     if (res.error) {
