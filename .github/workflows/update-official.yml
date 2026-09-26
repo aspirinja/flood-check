@@ -1,6 +1,9 @@
-# ดึงฝนและระดับน้ำจากสถานีทางการ (ThaiWater) ทุก 15 นาที แล้วเผยแพร่ data/official.json ไปที่บรานช์ "data"
-# ไม่ต้องตั้ง secret ใดๆ (ใช้ endpoint สาธารณะ) รีโปต้องเป็นสาธารณะเพื่อให้เว็บอ่านไฟล์ได้
-# หมายเหตุ: บรานช์ data ถูกเขียนทับทุกรอบ และ GitHub อาจหน่วงรอบเวลาได้หลายนาทีในช่วงที่ระบบคนใช้เยอะ
+# ดึงข้อมูลสาธารณะทุก 15 นาที แล้วเผยแพร่ไปที่บรานช์ "data" (บรานช์นี้ถูกเขียนทับทุกรอบ)
+#   official.json = ฝนและระดับน้ำจากสถานีวัด (ThaiWater)
+#   roads.json    = ถนนที่มีรายงานน้ำท่วม (Longdo/iTIC/กรมทางหลวง และ Traffy Fondue)
+# ไม่ต้องตั้ง secret ใดๆ รีโปต้องเป็นสาธารณะเพื่อให้เว็บอ่านไฟล์ได้
+# ถ้าแหล่งใดล้มเหลวในรอบนั้น จะคงไฟล์เดิมของแหล่งนั้นไว้ (หน้าเว็บจะเตือนเมื่อข้อมูลเก่ากว่า 3 ชม.)
+# หมายเหตุ: GitHub อาจหน่วงรอบเวลาได้หลายนาทีในช่วงที่ระบบคนใช้เยอะ
 name: update-official-data
 on:
   schedule:
@@ -14,7 +17,7 @@ concurrency:
 jobs:
   update:
     runs-on: ubuntu-latest
-    timeout-minutes: 6
+    timeout-minutes: 12
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -22,14 +25,25 @@ jobs:
           python-version: "3.12"
       - name: ดึงข้อมูลสถานีวัด
         timeout-minutes: 4
+        continue-on-error: true
         run: python tools/fetch_thaiwater.py
+      - name: ดึงข้อมูลถนนท่วม
+        timeout-minutes: 4
+        continue-on-error: true
+        run: python tools/fetch_roads.py
       - name: เผยแพร่ไปที่บรานช์ data
         run: |
-          mkdir /tmp/pub && cp data/official.json /tmp/pub/official.json
+          git fetch -q --depth=1 origin data:refs/remotes/origin/data 2>/dev/null || true
+          mkdir /tmp/pub
+          for f in official.json roads.json; do
+            if [ -f "data/$f" ]; then cp "data/$f" "/tmp/pub/$f"
+            else git show "origin/data:$f" > "/tmp/pub/$f" 2>/dev/null && echo "คงไฟล์เดิม $f" || rm -f "/tmp/pub/$f"; fi
+          done
+          ls /tmp/pub/*.json || { echo "ไม่มีข้อมูลให้เผยแพร่"; exit 1; }
           cd /tmp/pub
           git init -q -b data
           git config user.name "flood-bot"
           git config user.email "flood-bot@users.noreply.github.com"
-          git add official.json
-          git commit -q -m "อัปเดตสถานีวัด $(date -u +%Y-%m-%dT%H:%MZ)"
+          git add *.json
+          git commit -q -m "อัปเดตข้อมูล $(date -u +%Y-%m-%dT%H:%MZ)"
           git push -f "https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git" data
