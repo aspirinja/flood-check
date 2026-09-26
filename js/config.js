@@ -2,6 +2,8 @@
 window.FLOOD_CONFIG = {
   /* ไฟล์ข้อมูลน้ำท่วม (รูปแบบดู README) ใส่ URL เต็มได้ เช่น ไฟล์ในบรานช์ data ของ GitHub */
   dataUrl: 'data/flood.json',
+  /* ไฟล์สถานีวัดฝนและระดับน้ำทางการ (สร้างโดย tools/fetch_thaiwater.py) ใส่ '' เพื่อปิดส่วนนี้ */
+  officialUrl: 'https://raw.githubusercontent.com/aspirinja/flood-check/data/official.json',
   refreshSeconds: 120,          // ดึงข้อมูลใหม่ทุกกี่วินาที
   staleAfterMinutes: 120,       // ข้อมูลเก่ากว่านี้ถือว่าไม่ทันสมัย
 
