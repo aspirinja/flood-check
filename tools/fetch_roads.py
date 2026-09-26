@@ -142,7 +142,9 @@ def parse_traffy(raw, now):
 
 
 # ---------- จับจุดเหตุการณ์ให้ตรงกับเส้นถนนจริงจาก OpenStreetMap (Overpass) ----------
-OVERPASS = ["https://overpass-api.de/api/interpreter", "https://overpass.kumi.systems/api/interpreter"]
+OVERPASS = ["https://overpass-api.de/api/interpreter", "https://overpass.private.coffee/api/interpreter", "https://overpass.kumi.systems/api/interpreter"]
+SNAP_BUDGET_S = 100   # เวลารวมสูงสุดของขั้นตอนจับคู่เส้นถนน เกินแล้วข้าม (ไม่ให้ทั้งงานค้าง)
+_deadline = [0.0]
 HW = "motorway|trunk|primary|secondary|tertiary|unclassified|residential|service|motorway_link|trunk_link|primary_link|secondary_link"
 HW_RANK = {"trunk": 0, "primary": 0, "secondary": 0, "tertiary": 1, "unclassified": 1, "residential": 2, "service": 3}
 SNAP_M = 45        # ระยะสูงสุดจากจุดถึงเส้นถนน (เมตร)
@@ -203,9 +205,11 @@ def overpass_query(incs):
     data = "data=" + urllib.parse.quote("[out:json][timeout:60];(" + body + ");out tags geom;")
     last = None
     for url in OVERPASS:
+        if time.time() > _deadline[0]:
+            raise TimeoutError("หมดเวลาจับคู่เส้นถนน")
         try:
             req = urllib.request.Request(url, data=data.encode(), headers={"User-Agent": "flood-check/1.0", "Content-Type": "application/x-www-form-urlencoded", "Accept-Encoding": "gzip"})
-            with urllib.request.urlopen(req, timeout=60) as r:
+            with urllib.request.urlopen(req, timeout=25) as r:
                 raw = r.read()
                 if (r.headers.get("Content-Encoding") or "").lower() == "gzip":
                     raw = gzip.decompress(raw)
@@ -221,9 +225,10 @@ def attach_geometry(incidents):
     if FIXTURE or not incidents:
         return 0
     n = 0
+    _deadline[0] = time.time() + SNAP_BUDGET_S
     try:
-        for k in range(0, len(incidents), 40):
-            chunk = incidents[k:k + 40]
+        for k in range(0, len(incidents), 70):
+            chunk = incidents[k:k + 70]
             ways = overpass_query(chunk)
             for inc in chunk:
                 g = snap_incident(inc, ways)
