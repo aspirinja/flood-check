@@ -8,6 +8,7 @@
 import json
 import os
 import sys
+import time
 import urllib.request
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
@@ -25,9 +26,27 @@ KEEP_HOURS = 12                     # สถานีที่ไม่ส่ง
 def load(name):
     if FIXTURE:
         return json.loads((Path(FIXTURE) / f"{name}.json").read_text(encoding="utf-8"))
-    req = urllib.request.Request(BASE + name, headers={"User-Agent": "flood-check/1.0"})
-    with urllib.request.urlopen(req, timeout=60) as r:
-        return json.loads(r.read().decode("utf-8"))
+    last = None
+    for attempt in (1, 2):   # ลองสูงสุด 2 ครั้ง และจำกัดเวลาทุกขั้นตอน เพื่อไม่ให้ค้าง
+        t0 = time.time()
+        try:
+            req = urllib.request.Request(BASE + name, headers={"User-Agent": "flood-check/1.0"})
+            with urllib.request.urlopen(req, timeout=20) as r:
+                print(f"{name}: เชื่อมต่อได้ HTTP {r.status} ใน {time.time() - t0:.1f} วินาที", flush=True)
+                buf = bytearray()
+                while True:
+                    chunk = r.read(65536)
+                    if not chunk:
+                        break
+                    buf += chunk
+                    if time.time() - t0 > 90:
+                        raise TimeoutError("อ่านข้อมูลนานเกิน 90 วินาที")
+            print(f"{name}: ได้ {len(buf) / 1e6:.1f} MB ใน {time.time() - t0:.1f} วินาที", flush=True)
+            return json.loads(buf.decode("utf-8"))
+        except Exception as e:
+            last = e
+            print(f"{name}: ครั้งที่ {attempt} ล้มเหลวหลัง {time.time() - t0:.1f} วินาที: {type(e).__name__}: {e}", file=sys.stderr, flush=True)
+    raise last
 
 
 def th(d):
@@ -101,8 +120,8 @@ def main():
         except Exception as e:
             print(f"{name} ล้มเหลว: {e}", file=sys.stderr)
             status.append({"id": name, "name": f"ThaiWater/สสน. {label}", "status": "error", "fetchedAt": now.isoformat().replace("+00:00", "Z")})
-    if not rain and not water and OUT.exists():
-        print("ไม่ได้ข้อมูลใหม่ คงไฟล์เดิมไว้", file=sys.stderr)
+    if not rain and not water:   # ไม่ได้ข้อมูลเลย ห้ามเผยแพร่ไฟล์ว่าง ให้ workflow ล้มเหลวเพื่อให้เห็นปัญหา
+        print("ไม่ได้ข้อมูลจากทั้งสองแหล่ง จึงไม่เขียนไฟล์", file=sys.stderr)
         return 1
     bk = [r["rain24h"] for r in rain if r["province"] == BKK]
     summary = {
