@@ -5,6 +5,7 @@
 ข้อควรรู้: เป็นข้อมูลจากสถานีวัดฝนและระดับน้ำในคลอง/แม่น้ำ ไม่ใช่ความลึกน้ำท่วมบนถนน
 ตัวแปรสภาพแวดล้อม  THAIWATER_FIXTURE_DIR = โฟลเดอร์ไฟล์ตัวอย่าง (ใช้ทดสอบโดยไม่ต่อเน็ต)
 """
+import gzip
 import json
 import os
 import sys
@@ -30,9 +31,10 @@ def load(name):
     for attempt in (1, 2):   # ลองสูงสุด 2 ครั้ง และจำกัดเวลาทุกขั้นตอน เพื่อไม่ให้ค้าง
         t0 = time.time()
         try:
-            req = urllib.request.Request(BASE + name, headers={"User-Agent": "flood-check/1.0"})
+            req = urllib.request.Request(BASE + name, headers={"User-Agent": "flood-check/1.0", "Accept-Encoding": "gzip"})
             with urllib.request.urlopen(req, timeout=20) as r:
                 print(f"{name}: เชื่อมต่อได้ HTTP {r.status} ใน {time.time() - t0:.1f} วินาที", flush=True)
+                gz = (r.headers.get("Content-Encoding") or "").lower() == "gzip"
                 buf = bytearray()
                 while True:
                     chunk = r.read(65536)
@@ -42,7 +44,8 @@ def load(name):
                     if time.time() - t0 > 90:
                         raise TimeoutError("อ่านข้อมูลนานเกิน 90 วินาที")
             print(f"{name}: ได้ {len(buf) / 1e6:.1f} MB ใน {time.time() - t0:.1f} วินาที", flush=True)
-            return json.loads(buf.decode("utf-8"))
+            raw = gzip.decompress(bytes(buf)) if gz else bytes(buf)
+            return json.loads(raw.decode("utf-8"))
         except Exception as e:
             last = e
             print(f"{name}: ครั้งที่ {attempt} ล้มเหลวหลัง {time.time() - t0:.1f} วินาที: {type(e).__name__}: {e}", file=sys.stderr, flush=True)
